@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
@@ -11,8 +12,12 @@ public class Monster : MonoBehaviour
 {
     public Text Text;
     Color monsterColor;
-
     [HideInInspector] public int life;
+    
+    public GameObject Bullet;
+    bool BulletCreated;
+    GameObject blt;
+
     public GameObject player;
     Vector3 mov;
     NavMeshAgent agent;
@@ -36,6 +41,8 @@ public class Monster : MonoBehaviour
         velocMult = 1;
         Random.Range(-veloc, veloc);
         Changed = false;
+
+        BulletCreated = false;
     }
 
     // Update is called once per frame
@@ -58,10 +65,11 @@ public class Monster : MonoBehaviour
                     
                     if (Input.GetKey(KeyCode.Mouse0))
                     {
-                        GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
+                        Rigidbody rb = GetComponent<Rigidbody>();
+                        rb.AddForce(- gameObject.transform.forward * 30,ForceMode.Impulse);
                         life--;
                         player.GetComponent<Player>().Attacked = true;
-                        Debug.Log("ATACOU");
+                        Debug.Log("ATTACK");
                     }
                 }
 
@@ -72,13 +80,15 @@ public class Monster : MonoBehaviour
 
         if (Vector3.Distance(transform.position, player.transform.position) < 30)
         {
+            BulletCreation();
             velocMult = 5;
             GetComponent<Renderer>().material.SetColor("_Color", Color.green);
             if (!Changed)
             {
                 Changed = true;
             }
-            else agent.SetDestination(player.transform.position);
+            else //agent.SetDestination(player.transform.position);
+            agent.Move((player.transform.position - transform.position) * Time.deltaTime);
         }
         else 
         {
@@ -123,5 +133,21 @@ public class Monster : MonoBehaviour
     {
         if(Vector3.Distance(transform.position, player.transform.position) <= 5) return true;
         return false; 
+    }
+
+    void BulletCreation()
+    {
+        if (!BulletCreated)
+        {
+            blt = Instantiate(Bullet);
+            BulletCreated = true;
+        }
+        else
+        {
+            if (blt.IsDestroyed())
+            {
+                BulletCreated = false;
+            }  
+        }
     }
 }

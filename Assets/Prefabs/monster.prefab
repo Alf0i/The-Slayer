@@ -135,7 +135,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fe39537c130e3846b52d8283d1800f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Text: {fileID: 0}
   life: 0
+  Bullet: {fileID: 4946229568630255963, guid: 4a4036434b54d6a44aa3018e9562e2e9, type: 3}
   player: {fileID: 7142049672762702457, guid: 9f57e4ba016f8164c9150cfafe9125d4, type: 3}
 --- !u!54 &6638094096951208925
 Rigidbody:
@@ -151,5 +153,5 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
