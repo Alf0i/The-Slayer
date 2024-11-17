@@ -10,9 +10,10 @@ using UnityEngine.InputSystem.XR;
 
 public class Player : MonoBehaviour
 {
+    public int life;
     public Event Event;
     // Start is called before the first frame update
-    
+    public GameObject stick;
     
     public float mouseSens = 100f;
     public Transform orientation;
@@ -34,6 +35,7 @@ public class Player : MonoBehaviour
     Vector3 mov;
     void Start()
     {
+        life = 5;
         moviment = Vector3.zero;
         controller = GetComponent<CharacterController>();
         rb = GetComponent<Rigidbody>();
@@ -124,6 +126,19 @@ public class Player : MonoBehaviour
         controller.Move(mov * Time.deltaTime);
 
         
+    }
+
+    void UsingStaffWeapon()
+    {
+
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.name == "Bullet")
+        {
+            Destroy(GameObject.Find("Bullet"));
+        }
     }
 }
 

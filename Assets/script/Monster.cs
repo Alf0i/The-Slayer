@@ -16,7 +16,7 @@ public class Monster : MonoBehaviour
     
     public GameObject Bullet;
     bool BulletCreated;
-    GameObject blt;
+    Rigidbody rb;
 
     public GameObject player;
     Vector3 mov;
@@ -88,7 +88,7 @@ public class Monster : MonoBehaviour
                 Changed = true;
             }
             else //agent.SetDestination(player.transform.position);
-            agent.Move((player.transform.position - transform.position) * Time.deltaTime);
+            agent.Move((player.transform.position - transform.position).normalized * velocMult * Time.deltaTime);
         }
         else 
         {
@@ -118,6 +118,8 @@ public class Monster : MonoBehaviour
 
         }
 
+        //enemy attack
+
     }
 
     void Die()
@@ -137,17 +139,27 @@ public class Monster : MonoBehaviour
 
     void BulletCreation()
     {
+        transform.LookAt(player.transform);
         if (!BulletCreated)
         {
-            blt = Instantiate(Bullet);
+            rb = Instantiate(Bullet, transform.position + new Vector3(0,3f,0), Quaternion.identity).GetComponent<Rigidbody>();
+            rb.AddForce(transform.forward * 5f, ForceMode.Impulse);
+            // rb.AddForce(transform.up * 3f, ForceMode.Impulse);
             BulletCreated = true;
         }
         else
         {
-            if (blt.IsDestroyed())
+            if (Vector3.Distance(Bullet.transform.position, gameObject.transform.position) > 30)
             {
+                Destroy(rb.gameObject);
                 BulletCreated = false;
-            }  
+            }
+            
+            
         }
+        
+        
     }
+    
+
 }
