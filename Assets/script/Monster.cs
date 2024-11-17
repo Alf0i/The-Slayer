@@ -1,12 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 using static UnityEngine.Rendering.DebugUI;
 
 public class Monster : MonoBehaviour
 {
-    public static Monster Instance;
+    public Text Text;
+    Color monsterColor;
 
     [HideInInspector] public int life;
     public GameObject player;
@@ -19,15 +23,12 @@ public class Monster : MonoBehaviour
     float zValue;
     bool Changed;
 
-    private void Awake()
-    {
-        Instance = this;
-    }
+
     // Start is called before the first frame update
     void Start()
     {
         life = 3;
-
+        monsterColor = GetComponent<Renderer>().material.color;
         agent = GetComponent<NavMeshAgent>();
         mov = new Vector3(Random.value, 0, Random.value);
         agent.autoTraverseOffMeshLink = true;
@@ -40,47 +41,87 @@ public class Monster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Text.text =  Vector3.Distance(gameObject.transform.position, player.transform.position).ToString();
+
+        if (!PlayerIsNear())
+        {
+            GetComponent<Renderer>().material.SetColor("_Color", monsterColor);
+        }
+
+        if (player.GetComponent<Player>().canAttack)
+        {
+            if (!player.GetComponent<Player>().Attacked)
+            {
+                if (PlayerIsNear())
+                {
+
+                    
+                    if (Input.GetKey(KeyCode.Mouse0))
+                    {
+                        GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
+                        life--;
+                        player.GetComponent<Player>().Attacked = true;
+                        Debug.Log("ATACOU");
+                    }
+                }
+
+            }
+        }
+
         Die();
 
-        if (Vector3.Distance(transform.position, player.transform.position) < 20)
+        if (Vector3.Distance(transform.position, player.transform.position) < 30)
         {
-            velocMult = 15;
-            
+            velocMult = 5;
+            GetComponent<Renderer>().material.SetColor("_Color", Color.green);
             if (!Changed)
             {
-                mov = mov - Vector3.Slerp(player.transform.forward, transform.forward, velocMult);
                 Changed = true;
             }
-            
-        }
-        else if (Vector3.Distance(transform.position, player.transform.position) > 20 && Vector3.Distance(transform.position, player.transform.position) < 60)
-        {
-            Changed = false;
-            velocMult = 5;
+            else agent.SetDestination(player.transform.position);
         }
         else 
         {
             Changed = false;
-            velocMult = 1;
-        }
-         countChangeDir++;
-         if(countChangeDir > 1000)
-         {
-            xValue = Random.value;
-            zValue = Random.value;
-            countChangeDir = 0;
-            mov = new Vector3(xValue, 0, zValue);
-         }
+            if (Vector3.Distance(transform.position, player.transform.position) < 60)
+                velocMult = 15;
+            else
+            {
+                Changed = false;
+                velocMult = 0;
+            }
+            if (!Changed)
+            {
+                countChangeDir++;
+                if (countChangeDir > 600)
+                {
+                    xValue = Random.value;
+                    zValue = Random.value;
+                    countChangeDir = 0;
+                    mov = new Vector3(xValue, 0, zValue);
 
-        
-        agent.Move(mov * velocMult * Time.deltaTime);
+                }
+            }
+
+            agent.Move(mov * velocMult * Time.deltaTime);
+
+
+        }
+
     }
 
     void Die()
     {
         if(life <= 0)
         {
-            Destroy(gameObject);
+            Text.text = "Slaied";
+            gameObject.SetActive(false);
         }
+    }
+
+    bool PlayerIsNear()
+    {
+        if(Vector3.Distance(transform.position, player.transform.position) <= 5) return true;
+        return false; 
     }
 }

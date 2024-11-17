@@ -10,9 +10,9 @@ using UnityEngine.InputSystem.XR;
 
 public class Player : MonoBehaviour
 {
+    public Event Event;
     // Start is called before the first frame update
-    public GameObject monster;
-    Material monsterMaterial;
+    
     
     public float mouseSens = 100f;
     public Transform orientation;
@@ -28,8 +28,8 @@ public class Player : MonoBehaviour
     Vector3 moviment;
     Vector3 viewDir;
     CharacterController controller;
-    bool canAttack;
-    bool Attacked;
+    public bool canAttack;
+    public bool Attacked;
     float AttackCount;
     Vector3 mov;
     void Start()
@@ -47,7 +47,8 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(canAttack);
+        
+        
         
         if (Input.GetKeyDown(KeyCode.Mouse1))
             canAttack = true;
@@ -87,25 +88,16 @@ public class Player : MonoBehaviour
                 AttackCount = 0;
             }
         }
+        
 
         // Camera Rotation and Character Rotation
         if (canAttack)
         {
-            if(!Attacked && Vector3.Distance(transform.position, monster.transform.position) < 100)
-            {
-                if (Input.GetKey(KeyCode.Mouse0))
-                {
-                    Monster.Instance.life--;
-                    Attacked = true;
-                    Debug.Log("ATACOU");
-                }
-            }
-
 
             viewDir =  cam.forward;
             viewDir.y = 0;
             playerObj.forward = viewDir;
-            Vector3 inputdir1 = cam.transform.forward * vMov + cam.right * hMov;
+            Vector3 inputdir1 = cam.forward * vMov + cam.right * hMov;
             mov = inputdir1 * veloc;
         }
         else
