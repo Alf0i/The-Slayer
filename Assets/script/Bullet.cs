@@ -7,72 +7,62 @@ public class Bullet : MonoBehaviour
 {
     Rigidbody rb;
     GameObject player;
-    GameObject monster;
-    Vector3 lastPlayerPosition;
-    bool positionDefined;
+    Monster monster;
+    GameObject terrain;
+
     bool forceAdded;
    
     // Start is called before the first frame update
     void Start()
     {
         player = GameObject.FindWithTag("Player");
-        monster = GameObject.FindWithTag("enemy");
+        monster = gameObject.GetComponentInParent<Monster>();
+        terrain = GameObject.FindWithTag("Ground");
         rb = GetComponent<Rigidbody>();
-        positionDefined = false;
         forceAdded = false;
-        lastPlayerPosition = player.transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
-        PositionDefinition();
-        if (positionDefined)
+        
+        if (!forceAdded)
         {
+            Vector3 direc = (player.transform.position - monster.gameObject.transform.position).normalized;
+            rb.AddForce(direc * 3f, ForceMode.Impulse);
             
-            if (!forceAdded)
+
+            forceAdded = true;
+        }
+        else
+        {
+            if (Vector3.Distance(transform.position, monster.gameObject.transform.position) > 30)
             {
-                Vector3 vector3 = Vector3.Slerp(lastPlayerPosition, monster.transform.position, 0);
-                rb.AddForce(vector3 , ForceMode.Impulse);
-                forceAdded = true;
-            }
-            
-            if (Vector3.Distance(transform.position, monster.transform.position) > 30)
-            {
-                positionDefined = false;
+                monster.BulletCreated = false;
                 forceAdded = false;
                 Destroy(gameObject);
             }
         }
-
-    }
-
-    void PositionDefinition()
-    {
-        if (!positionDefined)
-        {
-            transform.position = monster.transform.position;
-
-            lastPlayerPosition = player.transform.position;
-            positionDefined = true;
-        }
+            
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider == player.GetComponent<CapsuleCollider>())
+        if (collision.collider.gameObject.CompareTag("PlayerC"))
         {
-            positionDefined = false;
+            Debug.Log("Colidiu 2");
+            monster.GetComponent<Monster>().BulletCreated = false;
             forceAdded = false;
             Destroy(gameObject);
             player.GetComponent<Player>().life--;
         }
-        else if (collision.gameObject.tag == "Ground")
+        else if (collision.collider.gameObject == terrain)
         {
-            positionDefined = false;
+            Debug.Log("Colidiu 3");
             forceAdded = false;
             Destroy(gameObject);
         }
     }
+    
 }
 

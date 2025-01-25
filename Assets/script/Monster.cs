@@ -5,42 +5,45 @@ using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using static UnityEngine.Rendering.DebugUI;
 
 public class Monster : MonoBehaviour
 {
+    public Text lifeText;
+
+    GameObject m_Monster;
     public Text Text;
     Color monsterColor;
     [HideInInspector] public int life;
     
     public GameObject Bullet;
-    bool BulletCreated;
-    Rigidbody rb;
+    public bool BulletCreated;
 
-    public GameObject player;
+    GameObject player;
     Vector3 mov;
     NavMeshAgent agent;
     float countChangeDir;
-    float veloc = 20;
+    float veloc;
     int velocMult;
     float xValue;
     float zValue;
-    bool Changed;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        player = GameObject.FindWithTag("Player");
+        veloc = 20;
         life = 3;
         monsterColor = GetComponent<Renderer>().material.color;
         agent = GetComponent<NavMeshAgent>();
-        mov = new Vector3(Random.value, 0, Random.value);
         agent.autoTraverseOffMeshLink = true;
         countChangeDir = 0;
         velocMult = 1;
         Random.Range(-veloc, veloc);
-        Changed = false;
+        mov = new Vector3(Random.value, 0, Random.value);
 
         BulletCreated = false;
     }
@@ -48,6 +51,7 @@ public class Monster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        PlayerIsNear();
         Text.text =  Vector3.Distance(gameObject.transform.position, player.transform.position).ToString();
 
         if (!PlayerIsNear())
@@ -55,7 +59,7 @@ public class Monster : MonoBehaviour
             GetComponent<Renderer>().material.SetColor("_Color", monsterColor);
         }
 
-        if (player.GetComponent<Player>().canAttack)
+        if (player.GetComponent<Player>().canAttack) 
         {
             if (!player.GetComponent<Player>().Attacked)
             {
@@ -69,49 +73,51 @@ public class Monster : MonoBehaviour
                         rb.AddForce(- gameObject.transform.forward * 30,ForceMode.Impulse);
                         life--;
                         player.GetComponent<Player>().Attacked = true;
-                        Debug.Log("ATTACK");
+                    
                     }
                 }
-
             }
+
         }
 
-        Die();
+
+        
 
         if (Vector3.Distance(transform.position, player.transform.position) < 30)
         {
-            BulletCreation();
+            lifeText.text = life.ToString();
             velocMult = 5;
             GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-            if (!Changed)
-            {
-                Changed = true;
-            }
-            else //agent.SetDestination(player.transform.position);
-            agent.Move((player.transform.position - transform.position).normalized * velocMult * Time.deltaTime);
+            
+            Vector3 vec = (player.transform.position - transform.position).normalized;
+                Debug.DrawLine( transform.position, player.transform.position, Color.cyan,1f);
+                agent.Move(vec * velocMult * Time.deltaTime);
+            Shooting();
+
+            gameObject.transform.LookAt(player.transform);
         }
         else 
         {
-            Changed = false;
+            BulletCreated = false; 
+            
             if (Vector3.Distance(transform.position, player.transform.position) < 60)
                 velocMult = 15;
             else
             {
-                Changed = false;
+                
                 velocMult = 0;
             }
-            if (!Changed)
+            
+            countChangeDir++;
+            if (countChangeDir > 600)
             {
-                countChangeDir++;
-                if (countChangeDir > 600)
-                {
-                    xValue = Random.value;
-                    zValue = Random.value;
-                    countChangeDir = 0;
-                    mov = new Vector3(xValue, 0, zValue);
+                xValue = Random.value;
+                zValue = Random.value;
+                countChangeDir = 0;
+                mov = new Vector3(xValue, 0, zValue);
 
-                }
             }
+            
 
             agent.Move(mov * velocMult * Time.deltaTime);
 
@@ -119,15 +125,17 @@ public class Monster : MonoBehaviour
         }
 
         //enemy attack
-
+        Die();
     }
 
     void Die()
     {
         if(life <= 0)
         {
-            Text.text = "Slaied";
-            gameObject.SetActive(false);
+            lifeText.text = "0";
+            Text.text = "Hunted";
+            Destroy(this.gameObject);
+            //gameObject.SetActive(false);
         }
     }
 
@@ -137,29 +145,26 @@ public class Monster : MonoBehaviour
         return false; 
     }
 
-    void BulletCreation()
+    
+    
+    public void Shooting()
     {
-        transform.LookAt(player.transform);
-        if (!BulletCreated)
-        {
-            rb = Instantiate(Bullet, transform.position + new Vector3(0,3f,0), Quaternion.identity).GetComponent<Rigidbody>();
-            rb.AddForce(transform.forward * 5f, ForceMode.Impulse);
-            // rb.AddForce(transform.up * 3f, ForceMode.Impulse);
-            BulletCreated = true;
-        }
-        else
-        {
-            if (Vector3.Distance(Bullet.transform.position, gameObject.transform.position) > 30)
-            {
-                Destroy(rb.gameObject);
-                BulletCreated = false;
-            }
-            
-            
-        }
+
         
+        Ray ray = new Ray(transform.position, transform.forward);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 30f))
+        {
+            var obj = hit.collider.gameObject;
+            if (obj.CompareTag("Player"))
+            {
+                if (!BulletCreated)
+                {
+                    Instantiate<GameObject>(Bullet, new Vector3(this.gameObject.transform.position.x, this.gameObject.transform.position.y + 1, this.gameObject.transform.position.z), Quaternion.identity, this.gameObject.transform);
+                    BulletCreated = true;
+                }
+            }
+        }
         
     }
-    
-
 }

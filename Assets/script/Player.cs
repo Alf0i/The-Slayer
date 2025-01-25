@@ -7,13 +7,18 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.XR;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
     public int life;
     public Event Event;
     // Start is called before the first frame update
-    public GameObject stick;
+    GameObject gBullet;
+    public GameObject finish;
+    public GameObject Dist;
+    Text Text;
     
     public float mouseSens = 100f;
     public Transform orientation;
@@ -35,6 +40,7 @@ public class Player : MonoBehaviour
     Vector3 mov;
     void Start()
     {
+        gBullet = GameObject.FindWithTag("Bullet");
         life = 5;
         moviment = Vector3.zero;
         controller = GetComponent<CharacterController>();
@@ -50,6 +56,26 @@ public class Player : MonoBehaviour
     void Update()
     {
         
+        if (life == 0)
+        {
+            Time.timeScale = 0;
+            Dist.SetActive(false);
+            finish.SetActive(true);
+            finish.GetComponentInChildren<Text>().text = "You Lost";
+
+            if (Input.GetKey(KeyCode.Return))
+            {
+                SceneManager.LoadScene(gameObject.scene.name);
+            }
+        }
+
+        if (!GameObject.FindGameObjectWithTag("enemy"))
+        {
+            Time.timeScale = 0;
+            Dist.SetActive(false);
+            finish.SetActive(true);
+            finish.GetComponentInChildren<Text>().text = "You Win";
+        }
         
         
         if (Input.GetKeyDown(KeyCode.Mouse1))
@@ -128,17 +154,6 @@ public class Player : MonoBehaviour
         
     }
 
-    void UsingStaffWeapon()
-    {
-
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if(collision.gameObject.name == "Bullet")
-        {
-            Destroy(GameObject.Find("Bullet"));
-        }
-    }
+    
 }
 
